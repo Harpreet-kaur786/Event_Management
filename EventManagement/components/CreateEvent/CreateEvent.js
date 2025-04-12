@@ -50,7 +50,7 @@ export default function CreateEventScreen({ navigation }) {
 
   return (
     <LinearGradient
-      colors={['#3E82F7', '#A55DE8']} // Gradient colors
+      colors={['#ffe66d', '#A55DE8', '#ff6b6b']} // Gradient colors
       start={{ x: 0.5, y: 0 }}
       end={{ x: 0.5, y: 1 }}
       style={styles.container}

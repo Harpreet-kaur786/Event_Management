@@ -17,29 +17,37 @@ export default function EditEvent({ route, navigation }) {
   const [favourite, setFavourite] = useState(event.favourite);
 
   // Handle updating the event
-  const handleUpdateEvent = async () => {
-    if (!title || !description || !location || !time || !timezone) {
-      Alert.alert('Error', 'Please fill in all fields');
-      return;
-    }
+ // Handle updating the event
+const handleUpdateEvent = async () => {
+  if (!title || !description || !location || !time || !timezone) {
+    Alert.alert('Error', 'Please fill in all fields');
+    return;
+  }
 
-    try {
-      const eventRef = doc(db, 'users', auth.currentUser.uid, 'events', event.id);
-      await updateDoc(eventRef, {
-        title,
-        description,
-        location,
-        time,
-        timezone,
-        favourite,
-      });
+  // Ensure the 'favourite' field is a valid boolean value (either true or false)
+  const updatedFavourite = typeof favourite === 'boolean' ? favourite : false; // Default to false if undefined
 
-      Alert.alert('Success', 'Event updated');
-      navigation.goBack(); // Navigate back after updating
-    } catch (error) {
-      Alert.alert('Error', 'Failed to update event');
-    }
-  };
+  try {
+    const eventRef = doc(db, 'users', auth.currentUser.uid, 'events', event.id);
+    
+    await updateDoc(eventRef, {
+      title,
+      description,
+      location,
+      time,
+      timezone,
+      favourite: updatedFavourite, // Make sure 'favourite' is valid
+    });
+
+    Alert.alert('Success', 'Event updated');
+    navigation.goBack(); // Navigate back after updating
+  } catch (error) {
+    // Log the actual error message for debugging
+    console.error("Update error:", error);
+    Alert.alert('Error', `Failed to update event: ${error.message}`);
+  }
+};
+
 
   return (
     <LinearGradient

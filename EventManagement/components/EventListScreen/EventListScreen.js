@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { db, auth } from '../../Firebase'; // Ensure db and auth are imported from your Firebase config
-import { collection, getDocs } from 'firebase/firestore'; // Ensure you have the correct imports for Firestore
+import { collection, getDocs ,doc, deleteDoc} from 'firebase/firestore'; // Ensure you have the correct imports for Firestore
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { LinearGradient } from 'expo-linear-gradient';
 
@@ -58,19 +58,40 @@ export default function EventList({ navigation }) {
   );
 
   const deleteEvent = async (eventId) => {
-    try {
-      const eventRef = doc(db, 'users', auth.currentUser.uid, 'events', eventId);
-      await deleteDoc(eventRef);
-
-      setEvents((prevEvents) => prevEvents.filter((e) => e.id !== eventId)); // Remove deleted event from state
-    } catch (error) {
-      Alert.alert('Error', error.message || 'Failed to delete event');
-    }
+    // Show a confirmation alert
+    Alert.alert(
+      'Delete Event',
+      'Are you sure you want to delete this event?',
+      [
+        {
+          text: 'Cancel',
+          style: 'cancel', // Cancel the deletion
+        },
+        {
+          text: 'Delete',
+          style: 'destructive', // Delete the event
+          onPress: async () => {
+            try {
+              const eventRef = doc(db, 'users', auth.currentUser.uid, 'events', eventId);
+              await deleteDoc(eventRef);
+  
+              // Remove deleted event from state
+              setEvents((prevEvents) => prevEvents.filter((e) => e.id !== eventId));
+              Alert.alert('Success', 'Event deleted');
+            } catch (error) {
+              Alert.alert('Error', error.message || 'Failed to delete event');
+            }
+          },
+        },
+      ],
+      { cancelable: true } // Allow the user to dismiss the alert by tapping outside
+    );
   };
+  
 
   return (
     <LinearGradient
-      colors={['#3E82F7', '#A55DE8']}
+      colors={['#ff6b6b', '#A55DE8','#ffe66d']}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={styles.container}

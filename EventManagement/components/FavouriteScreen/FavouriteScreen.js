@@ -1,54 +1,49 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, Alert } from 'react-native';
 import { db, auth } from '../../Firebase';
-import { collection, getDocs, deleteDoc, doc } from 'firebase/firestore';
+import {
+  collection,
+  deleteDoc,
+  doc,
+  onSnapshot,
+  updateDoc,
+} from 'firebase/firestore';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { LinearGradient } from 'expo-linear-gradient';
 
 export default function FavouriteEvents({ navigation }) {
   const [favouriteEvents, setFavouriteEvents] = useState([]);
 
-  const fetchFavouriteEvents = async () => {
-    try {
-      const uid = auth.currentUser.uid;
-      const snapshot = await getDocs(collection(db, 'users', uid, 'events'));
-      const favourites = [];
+  useEffect(() => {
+    const uid = auth.currentUser?.uid;
+    const eventsRef = collection(db, 'users', uid, 'events');
 
+    const unsubscribe = onSnapshot(eventsRef, (snapshot) => {
+      const favourites = [];
       snapshot.forEach((doc) => {
         const data = doc.data();
         if (data.favourite) {
           favourites.push({ id: doc.id, ...data });
         }
       });
-
       setFavouriteEvents(favourites);
-    } catch (error) {
-      Alert.alert('Error', error.message || 'Failed to load favourite events');
-    }
-  };
+    });
 
-  useEffect(() => {
-    fetchFavouriteEvents();
+    return () => unsubscribe(); // Clean up listener
   }, []);
 
   const deleteEvent = async (eventId) => {
-    // Show confirmation alert before deleting
     Alert.alert(
       'Confirm Deletion',
       'Are you sure you want to delete this event?',
       [
-        {
-          text: 'Cancel',
-          style: 'cancel',
-        },
+        { text: 'Cancel', style: 'cancel' },
         {
           text: 'Delete',
           onPress: async () => {
             try {
               const eventRef = doc(db, 'users', auth.currentUser.uid, 'events', eventId);
               await deleteDoc(eventRef);
-  
-              setFavouriteEvents((prevEvents) => prevEvents.filter((e) => e.id !== eventId));
             } catch (error) {
               Alert.alert('Error', error.message || 'Failed to delete event');
             }
@@ -59,17 +54,27 @@ export default function FavouriteEvents({ navigation }) {
       { cancelable: true }
     );
   };
-  
+
+  const toggleFavourite = async (eventId, value) => {
+    try {
+      const eventRef = doc(db, 'users', auth.currentUser.uid, 'events', eventId);
+      await updateDoc(eventRef, {
+        favourite: value,
+      });
+    } catch (error) {
+      Alert.alert('Error', 'Failed to update favourite status');
+    }
+  };
 
   return (
     <LinearGradient
-      colors={['#3E82F7', '#A55DE8']}
+      colors={['#ffe66d', '#A55DE8','#ff6b6b']}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={styles.container}
     >
       <TouchableOpacity onPress={() => navigation.goBack()} style={styles.backButton}>
-        <Icon name="arrow-left" size={20} color="#fff" />
+        <Icon name="arrow-left" size={20} color="#000" />
       </TouchableOpacity>
 
       <Text style={styles.heading}>Favourite Events</Text>
@@ -82,13 +87,15 @@ export default function FavouriteEvents({ navigation }) {
           <View style={styles.eventCard}>
             <View style={styles.eventHeader}>
               <Text style={styles.eventTitle}>{item.title}</Text>
-              <Text style={styles.eventTime}>{item.time} {item.timezone}</Text>
+              <TouchableOpacity onPress={() => toggleFavourite(item.id, false)}>
+                <Icon name="heart" size={22} color="red" />
+              </TouchableOpacity>
             </View>
+            <Text style={styles.eventTime}>{item.time} {item.timezone}</Text>
             <View style={styles.eventDetails}>
               <Text style={styles.eventLocation}>📍 {item.location}</Text>
               <Text style={styles.eventDescription}>{item.description}</Text>
             </View>
-
             <View style={styles.eventActions}>
               <TouchableOpacity
                 style={styles.editButton}
@@ -96,7 +103,6 @@ export default function FavouriteEvents({ navigation }) {
               >
                 <Text style={styles.buttonText}>Edit</Text>
               </TouchableOpacity>
-
               <TouchableOpacity
                 style={styles.deleteButton}
                 onPress={() => deleteEvent(item.id)}
@@ -132,7 +138,7 @@ const styles = StyleSheet.create({
   heading: {
     fontSize: 26,
     fontWeight: 'bold',
-    color: '#fff',
+    color: '#ff6b6b',
     textAlign: 'center',
     marginTop: 50,
     marginBottom: 20,
@@ -160,6 +166,7 @@ const styles = StyleSheet.create({
   eventTime: {
     fontSize: 14,
     color: '#5E60CE',
+    marginTop: 6,
   },
   eventDetails: {
     marginTop: 10,
@@ -203,4 +210,3 @@ const styles = StyleSheet.create({
     marginTop: 40,
   },
 });
-
