@@ -1,32 +1,59 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, FlatList, TouchableOpacity, StyleSheet, Alert } from 'react-native';
-import { db, auth } from '../../Firebase'; // Ensure db and auth are imported from your Firebase config
-import { collection, getDocs ,doc, deleteDoc} from 'firebase/firestore'; // Ensure you have the correct imports for Firestore
+import { db, auth } from '../../Firebase';
+import { collection, onSnapshot, doc, deleteDoc } from 'firebase/firestore';
 import Icon from 'react-native-vector-icons/FontAwesome';
 import { LinearGradient } from 'expo-linear-gradient';
 
 export default function EventList({ navigation }) {
   const [events, setEvents] = useState([]);
 
-  const fetchEvents = async () => {
-    try {
-      const uid = auth.currentUser.uid; // Get the current user's ID
-      const snapshot = await getDocs(collection(db, 'users', uid, 'events')); // Query the events collection of the user
-      const allEvents = [];
-
-      snapshot.forEach((doc) => {
-        allEvents.push({ id: doc.id, ...doc.data() });
-      });
-
-      setEvents(allEvents); // Set the state with the fetched events
-    } catch (error) {
-      Alert.alert('Error', error.message || 'Failed to load events');
-    }
-  };
-
   useEffect(() => {
-    fetchEvents(); // Fetch events when the component mounts
+    const uid = auth.currentUser.uid;
+    const eventsRef = collection(db, 'users', uid, 'events');
+
+    const unsubscribe = onSnapshot(
+      eventsRef,
+      (snapshot) => {
+        const allEvents = snapshot.docs.map((doc) => ({
+          id: doc.id,
+          ...doc.data(),
+        }));
+        setEvents(allEvents);
+      },
+      (error) => {
+        Alert.alert('Error', error.message || 'Failed to load events');
+      }
+    );
+
+    // Cleanup listener on unmount
+    return () => unsubscribe();
   }, []);
+
+  const deleteEvent = async (eventId) => {
+    Alert.alert(
+      'Delete Event',
+      'Are you sure you want to delete this event?',
+      [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Delete',
+          style: 'destructive',
+          onPress: async () => {
+            try {
+              const eventRef = doc(db, 'users', auth.currentUser.uid, 'events', eventId);
+              await deleteDoc(eventRef);
+              Alert.alert('Success', 'Event deleted');
+
+            } catch (error) {
+              Alert.alert('Error', error.message || 'Failed to delete event');
+            }
+          },
+        },
+      ],
+      { cancelable: true }
+    );
+  };
 
   const renderEvent = ({ item }) => (
     <View style={styles.eventCard}>
@@ -57,41 +84,9 @@ export default function EventList({ navigation }) {
     </View>
   );
 
-  const deleteEvent = async (eventId) => {
-    // Show a confirmation alert
-    Alert.alert(
-      'Delete Event',
-      'Are you sure you want to delete this event?',
-      [
-        {
-          text: 'Cancel',
-          style: 'cancel', // Cancel the deletion
-        },
-        {
-          text: 'Delete',
-          style: 'destructive', // Delete the event
-          onPress: async () => {
-            try {
-              const eventRef = doc(db, 'users', auth.currentUser.uid, 'events', eventId);
-              await deleteDoc(eventRef);
-  
-              // Remove deleted event from state
-              setEvents((prevEvents) => prevEvents.filter((e) => e.id !== eventId));
-              Alert.alert('Success', 'Event deleted');
-            } catch (error) {
-              Alert.alert('Error', error.message || 'Failed to delete event');
-            }
-          },
-        },
-      ],
-      { cancelable: true } // Allow the user to dismiss the alert by tapping outside
-    );
-  };
-  
-
   return (
     <LinearGradient
-      colors={['#ff6b6b', '#A55DE8','#ffe66d']}
+      colors={['#ff6b6b', '#A55DE8', '#ffe66d']}
       start={{ x: 0, y: 0 }}
       end={{ x: 1, y: 1 }}
       style={styles.container}
@@ -103,10 +98,10 @@ export default function EventList({ navigation }) {
       <Text style={styles.heading}>All Events</Text>
 
       <FlatList
-        data={events} // Use the events state
+        data={events}
         keyExtractor={(item) => item.id}
         contentContainerStyle={styles.listContainer}
-        renderItem={renderEvent} // Render each event using the renderEvent function
+        renderItem={renderEvent}
         ListEmptyComponent={<Text style={styles.noEvent}>No events available.</Text>}
       />
     </LinearGradient>

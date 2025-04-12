@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import { View, Text, TextInput, TouchableOpacity, StyleSheet, Alert, ScrollView } from 'react-native';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons'; // For the back icon
+import { Ionicons } from '@expo/vector-icons'; 
 import { auth, db } from '../../Firebase';
 import { doc, updateDoc } from 'firebase/firestore';
 
 export default function EditEvent({ route, navigation }) {
-  const { event } = route.params; // Receive the event data from the Dashboard screen
+  const { event } = route.params;
 
-  // State to store the updated values
+
   const [title, setTitle] = useState(event.title);
   const [description, setDescription] = useState(event.description);
   const [location, setLocation] = useState(event.location);
@@ -16,16 +16,15 @@ export default function EditEvent({ route, navigation }) {
   const [timezone, setTimezone] = useState(event.timezone);
   const [favourite, setFavourite] = useState(event.favourite);
 
-  // Handle updating the event
- // Handle updating the event
+ 
 const handleUpdateEvent = async () => {
   if (!title || !description || !location || !time || !timezone) {
     Alert.alert('Error', 'Please fill in all fields');
     return;
   }
 
-  // Ensure the 'favourite' field is a valid boolean value (either true or false)
-  const updatedFavourite = typeof favourite === 'boolean' ? favourite : false; // Default to false if undefined
+ 
+  const updatedFavourite = typeof favourite === 'boolean' ? favourite : false; 
 
   try {
     const eventRef = doc(db, 'users', auth.currentUser.uid, 'events', event.id);
@@ -36,13 +35,13 @@ const handleUpdateEvent = async () => {
       location,
       time,
       timezone,
-      favourite: updatedFavourite, // Make sure 'favourite' is valid
+      favourite: updatedFavourite, 
     });
 
     Alert.alert('Success', 'Event updated');
-    navigation.goBack(); // Navigate back after updating
+    navigation.goBack(); 
   } catch (error) {
-    // Log the actual error message for debugging
+
     console.error("Update error:", error);
     Alert.alert('Error', `Failed to update event: ${error.message}`);
   }
@@ -51,7 +50,7 @@ const handleUpdateEvent = async () => {
 
   return (
     <LinearGradient
-      colors={['#3E82F7', '#A55DE8']} // Gradient colors
+      colors={['#3E82F7', '#A55DE8']} 
       start={{ x: 0.5, y: 0 }}
       end={{ x: 0.5, y: 1 }}
       style={styles.container}
@@ -176,7 +175,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 16,
   },
-  // Gradient circles for decoration
+
   circle: {
     position: 'absolute',
     borderRadius: 100,

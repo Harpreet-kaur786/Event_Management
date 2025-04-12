@@ -22,7 +22,7 @@ export default function Dashboard({ navigation }) {
         const userDoc = await getDoc(doc(db, 'users', auth.currentUser.uid));
         if (userDoc.exists()) {
           const data = userDoc.data();
-          setUserName(data.name); // Assumes 'name' field was saved during signup
+          setUserName(data.name); 
         }
       } catch (error) {
         Alert.alert('Error', 'Unable to fetch user name');
@@ -344,7 +344,7 @@ const styles = StyleSheet.create({
     justifyContent: 'space-between',
     height: 65,
     paddingHorizontal: 16,
-    backgroundColor: '#FFEBB7', // soft yellow pastel
+    backgroundColor: '#FFEBB7', 
     borderBottomWidth: 1,
     borderBottomColor: '#000',
     elevation: 3,

@@ -4,7 +4,7 @@ import DateTimePicker from '@react-native-community/datetimepicker';
 import { auth, db } from '../../Firebase';
 import { addDoc, collection } from 'firebase/firestore';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Ionicons } from '@expo/vector-icons';  // For the back icon
+import { Ionicons } from '@expo/vector-icons'; 
 
 export default function CreateEventScreen({ navigation }) {
   const [title, setTitle] = useState('');
@@ -50,7 +50,7 @@ export default function CreateEventScreen({ navigation }) {
 
   return (
     <LinearGradient
-      colors={['#ffe66d', '#A55DE8', '#ff6b6b']} // Gradient colors
+      colors={['#ffe66d', '#A55DE8', '#ff6b6b']} 
       start={{ x: 0.5, y: 0 }}
       end={{ x: 0.5, y: 1 }}
       style={styles.container}
@@ -219,7 +219,7 @@ const styles = StyleSheet.create({
     fontWeight: 'bold',
     fontSize: 16,
   },
-  // Gradient circles for decoration
+
   circle: {
     position: 'absolute',
     borderRadius: 100,
